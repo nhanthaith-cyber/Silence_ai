@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILENCE – Sơ Đồ Chức Năng Hệ Thống</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070b14;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.07);
+            --border-bright: rgba(255,255,255,0.15);
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --muted2: #94a3b8;
+
+            --c1: #f43f5e;   /* Marketing */
+            --c2: #fb923c;   /* Bán hàng */
+            --c3: #22d3ee;   /* Kho hàng */
+            --c4: #a78bfa;   /* Sản xuất */
+            --c5: #34d399;   /* Thu mua */
+            --c6: #fbbf24;   /* Tài chính */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse at 15% 10%, rgba(167,139,250,0.08) 0, transparent 45%),
+                radial-gradient(ellipse at 85% 90%, rgba(34,211,238,0.06) 0, transparent 45%);
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: sticky; top: 0; z-index: 200;
+            background: rgba(7,11,20,0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .logo-mark {
+            font-size: 20px; font-weight: 800; letter-spacing: 3px;
+            background: linear-gradient(135deg, #a78bfa, #22d3ee);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logo-sep { width: 1px; height: 28px; background: var(--border-bright); }
+        .logo-sub { font-size: 12px; color: var(--muted2); font-weight: 400; line-height: 1.4; }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .search-wrap { position: relative; }
+        .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 15px; height: 15px; }
+        #searchInput {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px 8px 36px;
+            color: var(--text);
+            font-size: 13px;
+            width: 240px;
+            transition: all .2s;
+        }
+        #searchInput:focus { outline: none; border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+        #searchInput::placeholder { color: var(--muted); }
+
+        .view-tabs {
+            display: flex; gap: 2px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 3px;
+        }
+        .tab-btn {
+            background: transparent; border: none;
+            color: var(--muted2); padding: 6px 14px;
+            border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 500;
+            transition: all .15s; white-space: nowrap;
+        }
+        .tab-btn.active { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        .dl-btn {
+            display: flex; align-items: center; gap: 7px;
+            background: linear-gradient(135deg, #7c3aed, #0891b2);
+            border: none; border-radius: 8px;
+            padding: 8px 16px;
+            color: #fff; font-size: 13px; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            transition: opacity .2s;
+        }
+        .dl-btn:hover { opacity: .85; }
+
+        /* ── LAYOUT ── */
+        .layout {
+            display: flex; height: calc(100vh - 64px);
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px; flex-shrink: 0;
+            border-right: 1px solid var(--border);
+            padding: 20px 12px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.15);
+        }
+        .sidebar-title {
+            font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+            color: var(--muted); text-transform: uppercase;
+            padding: 0 8px; margin-bottom: 10px;
+        }
+        .dept-btn {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 9px 10px;
+            background: transparent; border: 1px solid transparent;
+            border-radius: 8px; cursor: pointer;
+            color: var(--muted2); font-size: 13px; font-weight: 500;
+            transition: all .15s; text-align: left;
+            margin-bottom: 3px;
+        }
+        .dept-btn:hover { background: var(--surface-hover); color: var(--text); }
+        .dept-btn.active { background: var(--surface); border-color: var(--active-c, rgba(255,255,255,0.1)); color: var(--text); }
+        .dept-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dept-count {
+            margin-left: auto;
+            font-size: 11px; font-weight: 600; color: var(--muted);
+            background: rgba(255,255,255,0.05); padding: 1px 7px; border-radius: 10px;
+        }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 12px 4px; }
+        .all-btn {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 9px 10px;
+            background: transparent; border: 1px solid transparent;
+            border-radius: 8px; cursor: pointer;
+            color: var(--muted2); font-size: 13px; font-weight: 600;
+            transition: all .15s; text-align: left;
+            margin-bottom: 3px;
+        }
+        .all-btn:hover { background: var(--surface-hover); color: var(--text); }
+        .all-btn.active { background: var(--surface); border-color: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* ── CONTENT ── */
+        .content { flex: 1; overflow: auto; }
+
+        /* ── MINDMAP VIEW ── */
+        #mindmapView { padding: 32px; min-width: max-content; }
+
+        .mm-dept-block { margin-bottom: 40px; }
+        .mm-dept-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .mm-dept-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 14px; border-radius: 20px;
+            border: 1.5px solid;
+            font-size: 14px; font-weight: 700; letter-spacing: .3px;
+        }
+        .mm-dept-count-badge {
+            font-size: 11px; font-weight: 500; color: var(--muted2);
+        }
+
+        .mm-tree { display: flex; flex-direction: column; gap: 10px; padding-left: 20px; }
+        .mm-row { display: flex; align-items: flex-start; gap: 0; }
+
+        /* connector lines */
+        .mm-row-connector {
+            display: flex; flex-direction: column; align-items: flex-end;
+            padding-top: 14px; width: 20px; flex-shrink: 0;
+        }
+        .line-v { width: 1px; background: var(--connector-c, rgba(255,255,255,0.1)); flex: 1; min-height: 10px; }
+        .line-h { height: 1px; background: var(--connector-c, rgba(255,255,255,0.1)); width: 100%; }
+
+        .mm-lvl2-group { display: flex; flex-direction: column; gap: 8px; }
+        .mm-lvl2-row { display: flex; align-items: flex-start; gap: 0; }
+
+        .mm-node {
+            display: inline-flex; align-items: center;
+            border-radius: 6px; font-size: 13px; font-weight: 500;
+            white-space: nowrap; cursor: default;
+            transition: all .15s;
+        }
+        .mm-node:hover { filter: brightness(1.15); }
+
+        .mm-node-l2 {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left: 3px solid;
+            font-size: 13px; font-weight: 600;
+        }
+        .mm-node-l3 {
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-left: 2px solid;
+            font-size: 12.5px;
+        }
+        .mm-node-l4 {
+            padding: 4px 9px;
+            border-left: 2px solid;
+            font-size: 12px; font-weight: 400;
+            color: var(--muted2);
+            background: transparent;
+            border-top: none; border-right: none; border-bottom: none;
+        }
+        .mm-node-l5 {
+            padding: 3px 8px;
+            font-size: 11.5px; font-weight: 400; font-style: italic;
+            color: var(--muted);
+            border-left: 1px solid;
+            background: transparent;
+            border-top: none; border-right: none; border-bottom: none;
+        }
+        .mm-children { display: flex; flex-direction: column; gap: 5px; padding-left: 24px; margin-top: 5px; }
+
+        .highlight-node {
+            background: rgba(251,191,36,0.12) !important;
+            border-color: #fbbf24 !important;
+            color: #fef3c7 !important;
+            box-shadow: 0 0 12px rgba(251,191,36,0.2);
+        }
+
+        /* ── GRID CARD VIEW ── */
+        #gridView {
+            display: none;
+            padding: 28px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .grid-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            width: calc(50% - 10px);
+            min-width: 400px;
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+        .grid-card:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.05); }
+        .gc-header {
+            display: flex; align-items: center; gap: 10px;
+            padding-bottom: 12px; margin-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .gc-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .gc-title { font-size: 16px; font-weight: 700; }
+        .gc-badge {
+            margin-left: auto; font-size: 11px; font-weight: 600;
+            background: rgba(255,255,255,0.06); color: var(--muted2);
+            padding: 2px 8px; border-radius: 10px;
+        }
+        .gc-body { display: flex; flex-direction: column; gap: 10px; }
+        .gc-cat {
+            border-left: 3px solid;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 0 6px 6px 0;
+        }
+        .gc-cat-name { font-size: 12.5px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+        .gc-items { list-style: none; display: flex; flex-direction: column; gap: 3px; padding-left: 4px; }
+        .gc-items li { font-size: 12px; color: var(--muted2); position: relative; padding-left: 14px; }
+        .gc-items li::before { content: '›'; position: absolute; left: 0; color: inherit; opacity: 0.6; }
+        .gc-items li ul { list-style: none; margin-top: 3px; padding-left: 12px; display: flex; flex-direction: column; gap: 2px; }
+        .gc-items li ul li { font-size: 11.5px; color: var(--muted); padding-left: 12px; }
+        .gc-items li ul li::before { content: '–'; }
+        .gc-items li ul li ul li { font-size: 11px; color: #475569; }
+        .gc-items li ul li ul li::before { content: '·'; }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            display: flex; align-items: center; gap: 20px;
+            padding: 10px 32px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--muted);
+            position: sticky; bottom: 0; z-index: 10;
+        }
+        .stat { display: flex; align-items: center; gap: 5px; }
+        .stat strong { color: var(--muted2); }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Search highlight pulse */
+        @keyframes searchPulse {
+            0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(251,191,36,0); }
+            100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); }
+        }
+        .search-match { animation: searchPulse 1.5s infinite; }
+
+        /* Fade in */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .mm-dept-block { animation: fadeIn .25s ease both; }
+        .grid-card { animation: fadeIn .25s ease both; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <span class="logo-mark">SILENCE</span>
+        <div class="logo-sep"></div>
+        <div class="logo-sub">Sơ đồ phân rã chức năng hệ thống<br>Vận hành bán lẻ &amp; chuỗi sản xuất thời trang</div>
+    </div>
+    <div class="header-right">
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="searchInput" type="text" placeholder="Tìm chức năng...">
+        </div>
+        <div class="view-tabs">
+            <button class="tab-btn active" id="tabMindmap" onclick="switchTab('mindmap')">🌿 Sơ đồ cây</button>
+            <button class="tab-btn" id="tabGrid" onclick="switchTab('grid')">📋 Danh mục</button>
+        </div>
+        <a class="dl-btn" href="Silence_Business_Map.png" download>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Tải ảnh PNG
+        </a>
+    </div>
+</header>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-title">Bộ phận</div>
+        <button class="all-btn active" id="btnAll" onclick="filterDept('ALL', this)">
+            <span style="font-size:16px">🏢</span> Tất cả
+            <span class="dept-count" style="margin-left:auto">6</span>
+        </button>
+        <div class="sidebar-divider"></div>
+        <button class="dept-btn" id="btn-Marketing" onclick="filterDept('Marketing', this)" style="--active-c: var(--c1)">
+            <span class="dept-dot" style="background:var(--c1)"></span> Marketing
+            <span class="dept-count">7</span>
+        </button>
+        <button class="dept-btn" id="btn-Bán hàng" onclick="filterDept('Bán hàng', this)" style="--active-c: var(--c2)">
+            <span class="dept-dot" style="background:var(--c2)"></span> Bán hàng
+            <span class="dept-count">14</span>
+        </button>
+        <button class="dept-btn" id="btn-Kho hàng" onclick="filterDept('Kho hàng', this)" style="--active-c: var(--c3)">
+            <span class="dept-dot" style="background:var(--c3)"></span> Kho hàng
+            <span class="dept-count">13</span>
+        </button>
+        <button class="dept-btn" id="btn-Sản xuất" onclick="filterDept('Sản xuất', this)" style="--active-c: var(--c4)">
+            <span class="dept-dot" style="background:var(--c4)"></span> Sản xuất
+            <span class="dept-count">21</span>
+        </button>
+        <button class="dept-btn" id="btn-Thu mua" onclick="filterDept('Thu mua', this)" style="--active-c: var(--c5)">
+            <span class="dept-dot" style="background:var(--c5)"></span> Thu mua
+            <span class="dept-count">12</span>
+        </button>
+        <button class="dept-btn" id="btn-Tài chính" onclick="filterDept('Tài chính', this)" style="--active-c: var(--c6)">
+            <span class="dept-dot" style="background:var(--c6)"></span> Tài chính
+            <span class="dept-count">8</span>
+        </button>
+    </aside>
+
+    <div class="content" id="content">
+        <!-- Mindmap view -->
+        <div id="mindmapView"></div>
+        <!-- Grid view -->
+        <div id="gridView" style="display:none; padding:28px; gap:20px; flex-wrap:wrap;"></div>
+    </div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat">📊 <strong>6</strong> Bộ phận</div>
+    <div class="stat">🌿 <strong>25+</strong> Nhóm chức năng</div>
+    <div class="stat">📌 <strong>79</strong> Đầu việc chi tiết</div>
+    <div class="stat" id="searchStat" style="margin-left:auto; display:none">
+        🔍 Tìm thấy <strong id="matchCount">0</strong> kết quả
+    </div>
+</div>
+
+<script>
+// =============================================
+// DATA
+// =============================================
+const TREE = {"name":"SILENCE","children":[{"name":"Marketing","children":[{"name":"Quảng Cáo","children":[{"name":"Quảng Cáo Shopee"},{"name":"Quảng Cáo Tiktok"}]},{"name":"Booking KOL/KOC","children":[{"name":"Đăng bài Tiktok"},{"name":"Đăng bài Instagram"},{"name":"Tặng sản phẩm"}]},{"name":"Kênh Instagram","children":[{"name":"Đăng bài viết"},{"name":"Đăng story"}]}]},{"name":"Bán hàng","children":[{"name":"Sàn TMĐT","children":[{"name":"Shopee","children":[{"name":"Vận hành sàn cơ bản","children":[{"name":"Tạo sản phẩm"},{"name":"Thêm chương trình khuyến mãi"},{"name":"Đăng ký campaign"}]},{"name":"CSKH","children":[{"name":"Trả lời phản hồi khách hàng"},{"name":"Tư vấn"}]},{"name":"Đóng đơn"}]},{"name":"Tiktok","children":[{"name":"Vận hành sàn cơ bản","children":[{"name":"Tạo sản phẩm"},{"name":"Thêm chương trình khuyến mãi"},{"name":"Đăng ký campaign"}]},{"name":"CSKH","children":[{"name":"Trả lời phản hồi khách hàng"},{"name":"Tư vấn"}]},{"name":"Đóng đơn"}]}]},{"name":"Livestream","children":[{"name":"Livestream Shopee","children":[{"name":"Tạm dừng"}]},{"name":"Livestream Tiktok","children":[{"name":"Live theo ca 2 tiếng","children":[{"name":"Xếp lịch live"}]},{"name":"Lên deal khuyến mãi"}]}]},{"name":"Facebook, Instagram","children":[{"name":"Chat chốt đơn"}]}]},{"name":"Kho hàng","children":[{"name":"Lưu trữ","children":[{"name":"Hàng chưa QC","children":[{"name":"Nhận hàng"},{"name":"Xuất hàng lỗi"},{"name":"Ghi nhận số liệu"},{"name":"Sắp xếp hàng"}]},{"name":"Hàng đã QC","children":[{"name":"Xếp hàng"}]},{"name":"Đồ dùng cho công việc","children":[{"name":"Kiểm tra số lượng"},{"name":"Chủ động yêu cầu đặt hàng"}]}]},{"name":"QC","children":[{"name":"Kiểm tra sản phẩm"},{"name":"Dán tem"},{"name":"Đồ dùng cho công việc","children":[{"name":"Kiểm tra số lượng"},{"name":"Chủ động yêu cầu đặt hàng"}]}]},{"name":"Checker","children":[{"name":"Kiểm tra sai lệch thực tế với số liệu hệ thống"},{"name":"Kiểm tra lỗi của các đội"}]},{"name":"Phụ liệu","children":[{"name":"Phụ liệu trong lúc sản xuất"},{"name":"Phụ liệu gắn sau khi sản xuất"}]}]},{"name":"Sản xuất","children":[{"name":"Sản phẩm mới","children":[{"name":"Chọn vải"},{"name":"Lên mẫu"},{"name":"Duyệt mẫu và sửa mẫu"},{"name":"Chọn vải sản xuất"},{"name":"Lên lệnh sản xuất"},{"name":"Lên tỷ lệ cắt khi vải về"},{"name":"Chuẩn bị phụ liệu"},{"name":"Xử lý thêu hoặc in"},{"name":"Xử lý lên chuyền"},{"name":"Trả hàng"}]},{"name":"Sản phẩm tái bản","children":[{"name":"Lên lệnh tái"},{"name":"Lên tỷ lệ cắt mới khi vải về"},{"name":"Chuẩn bị phụ liệu"},{"name":"Xử lý thêu hoặc in"},{"name":"Xử lý lên chuyền"},{"name":"Trả hàng"}]},{"name":"Theo dõi hàng hóa hằng ngày","children":[{"name":"Hàng đang sản xuất (WIP)"},{"name":"Hàng đang trên đường về"},{"name":"Tồn kho thực tế"},{"name":"Số lượng bán"},{"name":"Dự báo gọi hàng"}]}]},{"name":"Thu mua","children":[{"name":"Vải","children":[{"name":"Đặt hàng"},{"name":"Yêu cầu thanh toán"},{"name":"Gửi vận chuyển nội địa"},{"name":"List thông tin khai báo"},{"name":"Báo giao hàng"},{"name":"Báo xuất hóa đơn"}]},{"name":"Phụ liệu","children":[{"name":"Đặt hàng"},{"name":"Yêu cầu thanh toán"},{"name":"Gửi vận chuyển nội địa"},{"name":"List thông tin khai báo"},{"name":"Báo giao hàng"},{"name":"Báo xuất hóa đơn"}]}]},{"name":"Tài chính","children":[{"name":"Rút tiền từ sàn"},{"name":"Thanh toán","children":[{"name":"NPL đầu vào"},{"name":"Chi phí gia công"},{"name":"Hàng FOB"},{"name":"Chi phí vận hành"},{"name":"Chi phí Marketing"},{"name":"Chi phí khác"}]},{"name":"Theo dõi dòng tiền"}]}]};
+
+const COLORS = {
+    "Marketing":  { pill: "var(--c1)", dim: "rgba(244,63,94,0.12)",  border: "rgba(244,63,94,0.4)"  },
+    "Bán hàng":   { pill: "var(--c2)", dim: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.4)" },
+    "Kho hàng":   { pill: "var(--c3)", dim: "rgba(34,211,238,0.10)", border: "rgba(34,211,238,0.4)" },
+    "Sản xuất":   { pill: "var(--c4)", dim: "rgba(167,139,250,0.12)",border: "rgba(167,139,250,0.4)"},
+    "Thu mua":    { pill: "var(--c5)", dim: "rgba(52,211,153,0.10)", border: "rgba(52,211,153,0.4)" },
+    "Tài chính":  { pill: "var(--c6)", dim: "rgba(251,191,36,0.10)", border: "rgba(251,191,36,0.4)" },
+};
+
+// =============================================
+// STATE
+// =============================================
+let currentDept = "ALL";
+let currentTab  = "mindmap";
+let searchQuery = "";
+
+// =============================================
+// RENDER HELPERS
+// =============================================
+function esc(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function countLeaves(node) {
+    if (!node.children || node.children.length === 0) return 1;
+    return node.children.reduce((s, c) => s + countLeaves(c), 0);
+}
+
+// Build recursive children HTML for mindmap
+function buildChildrenMM(children, color, depth) {
+    if (!children || children.length === 0) return "";
+    let html = `<div class="mm-children" style="border-left:1px dashed ${color}33; margin-left:2px; padding-left:20px; gap:${depth >= 3 ? 3 : 5}px;">`;
+    for (const ch of children) {
+        const cls = depth === 1 ? "mm-node mm-node-l2"
+                   : depth === 2 ? "mm-node mm-node-l3"
+                   : depth === 3 ? "mm-node mm-node-l4"
+                   : "mm-node mm-node-l5";
+        const borderStyle = depth <= 2
+            ? `border-left-color:${color}; padding:${depth===1?"7px 12px":"5px 10px"};`
+            : `border-left-color:${color}66;`;
+        const hasKids = ch.children && ch.children.length > 0;
+        html += `<div>
+            <div class="${cls} mm-searchable" style="${borderStyle}" data-name="${esc(ch.name)}">${esc(ch.name)}</div>
+            ${hasKids ? buildChildrenMM(ch.children, color, depth + 1) : ""}
+        </div>`;
+    }
+    html += `</div>`;
+    return html;
+}
+
+// Build one dept block for mindmap
+function buildDeptMM(dept) {
+    const c = COLORS[dept.name] || { pill:"#888", dim:"rgba(128,128,128,0.1)", border:"rgba(128,128,128,0.3)" };
+    const leaves = dept.children ? dept.children.reduce((s,ch) => s + countLeaves(ch), 0) : 0;
+    let html = `
+    <div class="mm-dept-block" id="block-${dept.name}">
+        <div class="mm-dept-header">
+            <div class="mm-dept-pill" style="color:${c.pill}; border-color:${c.border}; background:${c.dim}">
+                <span style="width:7px;height:7px;border-radius:50%;background:${c.pill};display:inline-block;"></span>
+                ${esc(dept.name)}
+            </div>
+            <span class="mm-dept-count-badge">${leaves} chức năng</span>
+        </div>
+        <div style="padding-left:16px;">`;
+
+    if (dept.children) {
+        for (const l2 of dept.children) {
+            const hasKids = l2.children && l2.children.length > 0;
+            html += `<div style="margin-bottom:8px;">
+                <div class="mm-node mm-node-l2 mm-searchable" style="border-left-color:${c.pill}; display:inline-flex;" data-name="${esc(l2.name)}">${esc(l2.name)}</div>
+                ${hasKids ? buildChildrenMM(l2.children, c.pill, 2) : ""}
+            </div>`;
+        }
+    }
+    html += `</div></div>`;
+    return html;
+}
+
+// Build grid card for one dept
+function buildGridCard(dept) {
+    const c = COLORS[dept.name] || { pill:"#888", dim:"rgba(128,128,128,0.1)", border:"rgba(128,128,128,0.3)" };
+    const leaves = dept.children ? dept.children.reduce((s,ch) => s + countLeaves(ch), 0) : 0;
+
+    function buildListItem(node, depth) {
+        const hasKids = node.children && node.children.length > 0;
+        let li = `<li class="mm-searchable" data-name="${esc(node.name)}">${esc(node.name)}`;
+        if (hasKids) {
+            li += `<ul>${node.children.map(ch => buildListItem(ch, depth+1)).join("")}</ul>`;
+        }
+        li += `</li>`;
+        return li;
+    }
+
+    let cats = "";
+    if (dept.children) {
+        for (const cat of dept.children) {
+            const hasKids = cat.children && cat.children.length > 0;
+            cats += `<div class="gc-cat" style="border-left-color:${c.pill}">
+                <div class="gc-cat-name mm-searchable" data-name="${esc(cat.name)}">${esc(cat.name)}</div>
+                ${hasKids ? `<ul class="gc-items">${cat.children.map(ch => buildListItem(ch, 0)).join("")}</ul>` : ""}
+            </div>`;
+        }
+    }
+
+    return `<div class="grid-card" id="grid-${esc(dept.name)}">
+        <div class="gc-header">
+            <span class="gc-dot" style="background:${c.pill}"></span>
+            <span class="gc-title" style="color:${c.pill}">${esc(dept.name)}</span>
+            <span class="gc-badge">${leaves} chức năng</span>
+        </div>
+        <div class="gc-body">${cats}</div>
+    </div>`;
+}
+
+// =============================================
+// RENDER
+// =============================================
+function render() {
+    const depts = TREE.children.filter(d => currentDept === "ALL" || d.name === currentDept);
+
+    if (currentTab === "mindmap") {
+        const mmView = document.getElementById("mindmapView");
+        mmView.style.display = "block";
+        document.getElementById("gridView").style.display = "none";
+        mmView.innerHTML = depts.map(buildDeptMM).join("");
+    } else {
+        const gridView = document.getElementById("gridView");
+        gridView.style.display = "flex";
+        document.getElementById("mindmapView").style.display = "none";
+        gridView.innerHTML = depts.map(buildGridCard).join("");
+    }
+
+    // Re-apply search highlight if any
+    if (searchQuery) applySearch(searchQuery);
+}
+
+// =============================================
+// FILTER
+// =============================================
+function filterDept(name, el) {
+    currentDept = name;
+    document.querySelectorAll(".dept-btn, .all-btn").forEach(b => b.classList.remove("active"));
+    el.classList.add("active");
+    render();
+}
+
+// =============================================
+// TAB SWITCH
+// =============================================
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabMindmap").classList.toggle("active", tab === "mindmap");
+    document.getElementById("tabGrid").classList.toggle("active", tab === "grid");
+    render();
+}
+
+// =============================================
+// SEARCH
+// =============================================
+function applySearch(q) {
+    const nodes = document.querySelectorAll(".mm-searchable");
+    let count = 0;
+    nodes.forEach(el => {
+        const name = (el.dataset.name || "").toLowerCase();
+        if (q && name.includes(q)) {
+            el.classList.add("highlight-node", "search-match");
+            count++;
+        } else {
+            el.classList.remove("highlight-node", "search-match");
+        }
+    });
+    const stat = document.getElementById("searchStat");
+    if (q) {
+        stat.style.display = "flex";
+        document.getElementById("matchCount").textContent = count;
+    } else {
+        stat.style.display = "none";
+    }
+}
+
+document.getElementById("searchInput").addEventListener("input", function() {
+    searchQuery = this.value.trim().toLowerCase();
+    applySearch(searchQuery);
+});
+
+// =============================================
+// INIT
+// =============================================
+render();
+</script>
+</body>
+</html>

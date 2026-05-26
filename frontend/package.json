@@ -1,0 +1,30 @@
+{
+  "name": "cs-agent-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^15.3.2",
+    "react": "^18",
+    "react-dom": "^18",
+    "socket.io-client": "^4.7.5",
+    "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
+    "recharts": "^2.12.7",
+    "react-hot-toast": "^2.4.1",
+    "lucide-react": "^0.378.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^9",
+    "eslint-config-next": "^15.3.2"
+  }
+}
