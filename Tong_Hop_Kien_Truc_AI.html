@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản Tổng Hợp & Cấu Trúc Kỹ Thuật - Silence AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .page { max-width: 900px; margin: 40px auto; background: white; padding: 60px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 8px; }
+        h1, h2, h3, h4 { color: #0f172a; }
+        .gradient-text { background: linear-gradient(to right, #2563eb, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        pre { background-color: #f1f5f9; padding: 15px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto; }
+        @media print {
+            body { background: white; }
+            .page { margin: 0; padding: 20px; box-shadow: none; border-radius: 0; max-width: 100%; }
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="page">
+        <!-- Phần 1: BÁO CÁO TỔNG QUAN -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold mb-2 gradient-text">Silence AI</h1>
+            <h2 class="text-2xl font-bold text-gray-700">Hệ Sinh Thái Customer Service Đa Tác Nhân (Multi-Agent)</h2>
+            <p class="text-gray-500 mt-2">Báo cáo tổng hợp dự án & Cấu trúc kỹ thuật hệ thống</p>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">1. Kiến trúc Đa kênh & Real-time</h3>
+            <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                <li><strong class="text-gray-900">Điểm tiếp nhận (Webhooks):</strong> Hệ thống kết nối trực tiếp với 4 nền tảng lớn (Facebook Messenger, Instagram Direct, Shopee, TikTok Shop). Mọi tin nhắn đều được đồng bộ về máy chủ trung tâm.</li>
+                <li><strong class="text-gray-900">Giao diện quản lý (Dashboard):</strong> Cổng thông tin dành cho nhân viên CSKH theo dõi toàn bộ tin nhắn đa sàn, thống kê hiệu suất, và có khả năng can thiệp trực tiếp (Human Handoff) khi cần thiết.</li>
+            </ul>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">2. Quy trình Hoạt động Đa Tác Nhân (Multi-Agent)</h3>
+            <p class="text-gray-700 mb-4">Mỗi tin nhắn khách hàng gửi đến sẽ trải qua một "dây chuyền" phân tích chuyên sâu gồm 3 bước:</p>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                <h4 class="font-bold text-blue-900 mb-2">👉 Bước 1: Lễ tân phân luồng (Router Agent)</h4>
+                <p class="text-gray-700 text-sm">Phân tích ý định của khách hàng (Intent classification). Nếu khách hàng hỏi nhiều vấn đề cùng lúc, Router Agent phân phát công việc cho nhiều chuyên gia xử lý song song.</p>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-lg mb-4 border border-purple-100">
+                <h4 class="font-bold text-purple-900 mb-2">👉 Bước 2: Phân tích Chuyên sâu (Specialist Agents)</h4>
+                <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                    <li><strong>Size Recommendation Agent:</strong> Phân tích chiều cao, cân nặng, độ co giãn chất liệu để chốt size.</li>
+                    <li><strong>Product Knowledge Agent:</strong> Thông tin sản phẩm, cách phối đồ, bảng màu.</li>
+                    <li><strong>Logistics Agent:</strong> Theo dõi vận đơn, chính sách vận chuyển.</li>
+                    <li><strong>Complaint Recovery Agent:</strong> Xử lý khiếu nại, xoa dịu cảm xúc khách hàng.</li>
+                    <li><strong>Sales Conversion Agent:</strong> Chốt sale, đề xuất mã giảm giá (Upsell/Cross-sell).</li>
+                </ul>
+            </div>
+
+            <div class="bg-green-50 p-4 rounded-lg mb-4 border border-green-100">
+                <h4 class="font-bold text-green-900 mb-2">👉 Bước 3: Tổng biên tập (Composer Agent)</h4>
+                <p class="text-gray-700 text-sm">Tổng hợp các ý kiến từ Bước 2, biên tập lại từ ngữ và xưng hô để tạo ra một câu trả lời duy nhất mang đậm phong cách <strong>Premium Fashion</strong> (Tinh tế, Lịch sự) trước khi gửi cho khách.</p>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">3. Các Tính Năng Cao Cấp Bổ Trợ</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border border-gray-200 p-4 rounded-lg shadow-sm">
+                    <h4 class="font-bold text-gray-900">🧠 Customer Memory</h4>
+                    <p class="text-sm text-gray-600 mt-1">AI ghi nhớ thông tin số đo, lịch sử mua hàng. Khách quay lại không cần cung cấp lại thông tin.</p>
+                </div>
+                <div class="border border-gray-200 p-4 rounded-lg shadow-sm">
+                    <h4 class="font-bold text-gray-900">👁️ Vision AI</h4>
+                    <p class="text-sm text-gray-600 mt-1">Khách gửi ảnh sản phẩm, AI có khả năng "nhìn" và phân tích hình ảnh để phản hồi trực tiếp.</p>
+                </div>
+                <div class="border border-gray-200 p-4 rounded-lg shadow-sm">
+                    <h4 class="font-bold text-gray-900">🛡️ Escalation Risk</h4>
+                    <p class="text-sm text-gray-600 mt-1">Phát hiện cảm xúc tiêu cực tột độ để khóa AI, chuyển ngay cho nhân viên thật xử lý.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE BREAK CHO PDF -->
+        <div class="page-break"></div>
+
+        <!-- Phần 2: CẤU TRÚC KỸ THUẬT -->
+        <div class="text-center mb-10 mt-10">
+            <h2 class="text-3xl font-extrabold mb-2 text-slate-800">Cấu Trúc Kỹ Thuật (Technical Structure)</h2>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">4. Tech Stack (Công nghệ cốt lõi)</h3>
+            <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                <li><strong>Mô hình:</strong> Client-Server kết hợp Real-time Socket.</li>
+                <li><strong>Frontend:</strong> <code>Next.js</code>, <code>React</code>, <code>TailwindCSS</code>.</li>
+                <li><strong>Backend:</strong> <code>FastAPI</code> (Python).</li>
+                <li><strong>Cơ sở dữ liệu:</strong> <code>SQLite</code> (với SQLAlchemy ORM).</li>
+                <li><strong>Kết nối Real-time:</strong> <code>Socket.IO</code> để truyền tải tin nhắn tức thời.</li>
+                <li><strong>AI Core:</strong> Kiến trúc Multi-Agent Orchestration (OpenAI API / Langchain format).</li>
+            </ul>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">5. Sơ Đồ Luồng AI (Multi-Agent Flow)</h3>
+            <div class="flex justify-center bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <pre class="mermaid">
+graph TD
+    User([Khách hàng]) --> |Nhắn tin| API[FastAPI / Webhook]
+    API --> Orch[Multi-Agent Orchestrator]
+    Orch --> R[Router Agent]
+    
+    R -->|Phân loại Intent| S1[Size Agent]
+    R -->|Phân loại Intent| S2[Product Agent]
+    R -->|Phân loại Intent| S3[Logistics Agent]
+    R -->|Phân loại Intent| S4[Complaint Agent]
+    R -->|Phân loại Intent| S5[Sales Agent]
+    
+    S1 --> Comp[Composer Agent]
+    S2 --> Comp
+    S3 --> Comp
+    S4 --> Comp
+    S5 --> Comp
+    
+    Comp --> |Tổng hợp phản hồi| User
+    
+    DB[(Customer Memory & Inventory)] -.-> Orch
+                </pre>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-bold border-b-2 border-gray-100 pb-2 mb-4">6. Cấu Trúc Thư Mục Hệ Thống (Directory Tree)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-2">Backend (FastAPI)</h4>
+                    <pre class="text-gray-700">
+backend/
+├── main.py
+├── .env
+├── cs_agent.db
+├── uploads/
+├── app/
+│   ├── agents/
+│   │   ├── orchestrator.py
+│   │   ├── router_agent.py
+│   │   ├── specialist_agents.py
+│   │   └── composer_agent.py
+│   ├── core/
+│   │   ├── config.py
+│   │   └── database.py
+│   ├── models/
+│   │   └── models.py
+│   ├── routers/
+│   │   ├── conversations.py
+│   │   └── webhooks.py
+│   └── services/
+│       ├── ai_service.py
+│       └── message_service.py
+                    </pre>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900 mb-2">Frontend (Next.js)</h4>
+                    <pre class="text-gray-700">
+frontend/
+├── package.json
+├── src/
+│   ├── app/
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── chat/
+│   │   └── dashboard/
+│   ├── lib/
+│   │   ├── api.ts
+│   │   └── socket.ts
+│   └── types/
+│       └── index.ts
+                    </pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-12 no-print">
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-200">
+                🖨️ Xuất ra file PDF
+            </button>
+            <p class="text-sm text-gray-400 mt-2">Mẹo: Trong cửa sổ in, chọn "Save as PDF" (Lưu dưới dạng PDF) để có file đẹp nhất</p>
+        </div>
+    </div>
+</body>
+</html>

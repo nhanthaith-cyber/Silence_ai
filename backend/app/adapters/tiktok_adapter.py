@@ -23,6 +23,43 @@ TIKTOK_CUSTOMER_NAMES = [
 ]
 
 
+def parse_tiktok_webhook(payload: dict) -> list:
+    """Phân tích payload từ TikTok Shop Open API v2"""
+    messages = []
+    
+    # Payload TikTok thường có cấu trúc:
+    # {
+    #   "type": 1,
+    #   "shop_id": "...",
+    #   "timestamp": 123456789,
+    #   "data": { ... }
+    # }
+    
+    # Ở bản thực tế, API v2 Chat Webhook trả về tin nhắn mới trong data
+    # (Do tài liệu TikTok cập nhật liên tục, tạm thời parse cấu trúc chung)
+    
+    event_type = payload.get("type")
+    
+    if event_type == 1:  # Giả sử type 1 là chat message
+        data = payload.get("data", {})
+        sender_id = data.get("sender_id", "unknown")
+        content = data.get("content", "")
+        conversation_id = data.get("conversation_id", f"tt_conv_{sender_id}")
+        
+        # Chỉ nhận tin nhắn từ Khách (không phải từ bot)
+        if data.get("sender_role") == "BUYER":
+            messages.append({
+                "platform": "tiktok",
+                "platform_conversation_id": conversation_id,
+                "customer_id": sender_id,
+                "customer_name": f"TikTok_{sender_id[-4:]}",
+                "content": content,
+                "message_id": data.get("message_id", f"msg_{random.randint(1000, 9999)}")
+            })
+            
+    return messages
+
+
 def generate_mock_tiktok_message() -> dict:
     """Tạo tin nhắn mock từ TikTok"""
     customer_idx = random.randint(0, len(TIKTOK_CUSTOMER_NAMES) - 1)

@@ -195,3 +195,18 @@ class Product(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+class ShopIntegration(Base):
+    __tablename__ = "shop_integrations"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    shop_id = Column(String, nullable=False, index=True)
+    platform = Column(Enum(PlatformEnum), nullable=False)
+    shop_name = Column(String, nullable=True)
+    access_token = Column(String, nullable=False)
+    refresh_token = Column(String, nullable=True)
+    expires_at = Column(Integer, nullable=True)
+    refresh_expires_at = Column(Integer, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
