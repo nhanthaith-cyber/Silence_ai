@@ -206,16 +206,9 @@ async def nhanh_callback(accessCode: str, db: Session = Depends(get_db)):
     if data.get("code") != 1:
         return {"error": "Failed to get access token", "details": data}
         
-    token_data = data.get("data", {})
-    if isinstance(token_data, str):
-        import json
-        try:
-            token_data = json.loads(token_data)
-        except:
-            pass
-            
-    access_token = token_data.get("accessToken") or token_data.get("access_token") or token_data.get("token")
-    business_id = token_data.get("businessId") or token_data.get("business_id") or token_data.get("storeId")
+    # Nhanh.vn trả về accessToken và businessId ngay ở root của JSON payload
+    access_token = data.get("accessToken") or data.get("access_token") or data.get("token")
+    business_id = data.get("businessId") or data.get("business_id") or data.get("storeId")
     
     if not access_token:
         return {"error": "Token not found in response", "raw_response": data}
