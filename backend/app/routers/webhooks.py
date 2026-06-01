@@ -207,9 +207,19 @@ async def nhanh_callback(accessCode: str, db: Session = Depends(get_db)):
         return {"error": "Failed to get access token", "details": data}
         
     token_data = data.get("data", {})
-    access_token = token_data.get("accessToken")
-    business_id = token_data.get("businessId")
+    if isinstance(token_data, str):
+        import json
+        try:
+            token_data = json.loads(token_data)
+        except:
+            pass
+            
+    access_token = token_data.get("accessToken") or token_data.get("access_token") or token_data.get("token")
+    business_id = token_data.get("businessId") or token_data.get("business_id") or token_data.get("storeId")
     
+    if not access_token:
+        return {"error": "Token not found in response", "raw_response": data}
+        
     # Save to Database
     shop_integration = db.query(ShopIntegration).filter(
         ShopIntegration.platform == PlatformEnum.NHANH_VN
