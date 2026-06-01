@@ -153,7 +153,7 @@ async def shopee_login():
         hashlib.sha256
     ).hexdigest()
     
-    redirect_url = "https://silence-backend-v2-production.up.railway.app/api/auth/shopee/callback"
+    redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
     auth_url = (
         f"https://partner.test-stable.shopeemobile.com{api_path}?"
         f"partner_id={partner_id}&timestamp={timestamp}&sign={sign}&redirect={redirect_url}"
