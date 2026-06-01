@@ -15,6 +15,7 @@ class PlatformEnum(str, enum.Enum):
     INSTAGRAM = "instagram"
     SHOPEE = "shopee"
     TIKTOK = "tiktok"
+    NHANH_VN = "nhanh_vn"
 
 
 class ConversationStatus(str, enum.Enum):

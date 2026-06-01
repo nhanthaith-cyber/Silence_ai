@@ -195,11 +195,8 @@ async def _find_product_context(message: str, db: Session) -> str:
         from app.services.product_service import search_products, format_product_for_prompt
         from app.integrations.nhanh import NhanhVNAdapter
         
-        # Khởi tạo nhanh_adapter ở đây hoặc lấy từ instance global
-        nhanh_adapter = NhanhVNAdapter(
-            app_id="77546",
-            secret_key="QBjZ2fXGowF53SQo4By6aYapBm5aurxHOW07AGdoubnZomUAr3PQrCEYUK50ex1z60tgcdZpCKh4N5gtlPkODRnvQCiEc6WwyUiPKVsxM5rZcW5r2JMRQe10lW2mN7es"
-        )
+        # Khởi tạo nhanh_adapter ở đây với DB
+        nhanh_adapter = NhanhVNAdapter(db=db)
         
         # Tìm sản phẩm liên quan trong Database cục bộ (lấy thông tin cơ bản)
         products = search_products(db, query=message, limit=3)

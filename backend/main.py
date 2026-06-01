@@ -14,6 +14,7 @@ from app.routers import conversations, tickets, knowledge, agents_config, analyt
 from app.routers import memory as memory_router
 from app.routers import products as products_router
 from app.routers import shopee_api
+from app.routers import nhanh_api
 from app.core.socket_manager import sio
 
 # Create tables
@@ -57,6 +58,7 @@ app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"]
 app.include_router(memory_router.router, prefix="/api/memory", tags=["Customer Memory"])
 app.include_router(products_router.router, prefix="/api/products", tags=["Products"])
 app.include_router(shopee_api.router)
+app.include_router(nhanh_api.router)
 
 # Wrap with Socket.IO
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)

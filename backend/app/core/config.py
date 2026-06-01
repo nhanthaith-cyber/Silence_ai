@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     TIKTOK_APP_KEY: str = ""
     TIKTOK_APP_SECRET: str = ""
     
+    # Nhanh.vn
+    NHANH_APP_ID: str = ""
+    NHANH_SECRET_KEY: str = ""
+    
     # App
     SECRET_KEY: str = "your-secret-key-change-in-production"
     DEBUG: bool = False

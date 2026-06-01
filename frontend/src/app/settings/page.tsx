@@ -177,7 +177,16 @@ export default function SettingsPage() {
               icon: '🎵',
               status: '⚡ Mock (Demo)',
               color: '#69b4ff',
-              fields: ['TIKTOK_APP_KEY', 'TIKTOK_APP_SECRET']
+              fields: ['TIKTOK_APP_KEY', 'TIKTOK_APP_SECRET'],
+              link: null
+            },
+            {
+              platform: 'Nhanh.vn (Tồn kho)',
+              icon: '📦',
+              status: 'Cấu hình UI',
+              color: '#10b981',
+              fields: ['Tích hợp tự động'],
+              link: '/settings/nhanh'
             },
           ].map((p, i) => (
             <div key={i} style={{
@@ -211,9 +220,12 @@ export default function SettingsPage() {
                 padding: '3px 10px',
                 background: p.status.includes('Mock') ? 'rgba(245,158,11,0.1)' : 'var(--bg-secondary)',
                 borderRadius: 'var(--radius-full)',
-                border: `1px solid ${p.status.includes('Mock') ? 'rgba(245,158,11,0.3)' : 'var(--border)'}`
-              }}>
-                {p.status}
+                border: `1px solid ${p.status.includes('Mock') ? 'rgba(245,158,11,0.3)' : 'var(--border)'}`,
+                cursor: p.link ? 'pointer' : 'default'
+              }}
+              onClick={() => p.link && (window.location.href = p.link)}
+              >
+                {p.link ? `🔧 ${p.status}` : p.status}
               </div>
             </div>
           ))}
