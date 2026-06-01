@@ -98,7 +98,7 @@ async def shopee_oauth_callback(code: str, shop_id: str, request: Request, db: S
     sign, timestamp = generate_shopee_signature(api_path)
     
     url = (
-        f"https://partner.shopeemobile.com{api_path}?"
+        f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}?"
         f"partner_id={settings.SHOPEE_PARTNER_ID}&"
         f"timestamp={timestamp}&"
         f"sign={sign}"
