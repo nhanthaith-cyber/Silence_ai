@@ -97,14 +97,15 @@ async def shopee_oauth_callback(code: str, shop_id: str, request: Request, db: S
     api_path = "/api/v2/auth/token/get"
     sign, timestamp = generate_shopee_signature(api_path)
     
+    partner_id_int = int(str(settings.SHOPEE_PARTNER_ID).strip()) if settings.SHOPEE_PARTNER_ID else 0
+    
     url = (
         f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}?"
-        f"partner_id={settings.SHOPEE_PARTNER_ID}&"
+        f"partner_id={partner_id_int}&"
         f"timestamp={timestamp}&"
         f"sign={sign}"
     )
     
-    partner_id_int = int(settings.SHOPEE_PARTNER_ID) if settings.SHOPEE_PARTNER_ID else 0
     payload = {
         "code": code,
         "shop_id": int(shop_id),
