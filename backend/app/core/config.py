@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # Shopee
     SHOPEE_PARTNER_ID: str = ""
     SHOPEE_PARTNER_KEY: str = ""
-    SHOPEE_API_BASE_URL: str = "https://openplatform.sandbox.test-stable.shopee.sg"  # Sandbox; Production: https://partner.shopeemobile.com
+    SHOPEE_API_BASE_URL: str = "https://partner.shopeemobile.com"  # Production
     
     # TikTok (mock trong MVP)
     TIKTOK_APP_KEY: str = ""

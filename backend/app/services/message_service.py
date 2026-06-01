@@ -185,8 +185,52 @@ async def process_incoming_message(
                 "status": "waiting_human",
                 "needs_attention": True
             })
+        
+        # ─── GỬI AI REPLY NGƯỢC VỀ PLATFORM CHO KHÁCH ─────────
+        try:
+            await _send_reply_to_platform(
+                platform=platform,
+                conversation=conversation,
+                reply_text=ai_result["reply"],
+                db=db
+            )
+        except Exception as e:
+            print(f"[Message Service] Platform send error: {e}")
     
     return {"success": True, "conversation_id": conversation.id}
+
+
+async def _send_reply_to_platform(platform: str, conversation, reply_text: str, db):
+    """Gửi tin nhắn AI trả lời ngược về platform cho khách hàng."""
+    if platform == "shopee":
+        from app.adapters.shopee_adapter import send_shopee_message
+        # conversation.platform_conversation_id = "shopee_{conversation_id}"
+        # Shopee send_message cần to_id = buyer user id
+        buyer_id = conversation.customer_id
+        success = await send_shopee_message(buyer_id, reply_text, db=db)
+        if success:
+            print(f"[Shopee] ✅ Sent AI reply to {buyer_id}")
+        else:
+            print(f"[Shopee] ❌ Failed to send reply to {buyer_id}")
+    
+    elif platform == "facebook":
+        try:
+            from app.adapters.facebook_adapter import send_facebook_message
+            await send_facebook_message(conversation.customer_id, reply_text)
+            print(f"[Facebook] ✅ Sent AI reply to {conversation.customer_id}")
+        except Exception as e:
+            print(f"[Facebook] Send error: {e}")
+    
+    elif platform == "instagram":
+        try:
+            from app.adapters.instagram_adapter import send_instagram_message
+            await send_instagram_message(conversation.customer_id, reply_text)
+            print(f"[Instagram] ✅ Sent AI reply to {conversation.customer_id}")
+        except Exception as e:
+            print(f"[Instagram] Send error: {e}")
+    
+    else:
+        print(f"[{platform}] Platform send not implemented yet")
 
 
 async def _find_product_context(message: str, db: Session) -> str:

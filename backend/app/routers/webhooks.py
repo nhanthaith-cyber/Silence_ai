@@ -100,7 +100,7 @@ async def shopee_oauth_callback(code: str, shop_id: str, request: Request, db: S
     partner_id_int = int(str(settings.SHOPEE_PARTNER_ID).strip()) if settings.SHOPEE_PARTNER_ID else 0
     
     url = (
-        f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}?"
+        f"https://partner.shopeemobile.com{api_path}?"
         f"partner_id={partner_id_int}&"
         f"timestamp={timestamp}&"
         f"sign={sign}"
@@ -161,7 +161,7 @@ async def shopee_login():
     
     # URL ủy quyền Shopee Sandbox environment (đúng URL chính thức)
     auth_url = (
-        f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}"
+        f"https://partner.shopeemobile.com{api_path}"
         f"?partner_id={int(partner_id)}"
         f"&timestamp={timestamp}"
         f"&sign={sign}"
@@ -273,7 +273,7 @@ async def debug_shopee():
     async with httpx.AsyncClient(follow_redirects=False, timeout=10) as client:
         for label, sign in [("with_shpk_prefix", sign_with_prefix), ("without_shpk_prefix", sign_without_prefix)]:
             url = (
-                f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}"
+                f"https://partner.shopeemobile.com{api_path}"
                 f"?partner_id={int(partner_id)}"
                 f"&timestamp={timestamp}"
                 f"&sign={sign}"
