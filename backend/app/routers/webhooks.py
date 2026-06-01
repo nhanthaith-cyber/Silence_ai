@@ -197,7 +197,11 @@ async def nhanh_callback(accessCode: str, db: Session = Depends(get_db)):
     
     async with httpx.AsyncClient() as client:
         response = await client.post(url, data=payload)
+        
+    try:
         data = response.json()
+    except Exception:
+        return {"error": "Failed to parse Nhanh.vn response", "text": response.text, "status_code": response.status_code}
         
     if data.get("code") != 1:
         return {"error": "Failed to get access token", "details": data}
