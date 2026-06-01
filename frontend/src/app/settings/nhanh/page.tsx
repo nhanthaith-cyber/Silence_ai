@@ -73,6 +73,32 @@ export default function NhanhSettingsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
+                <a 
+                  href="https://silence-backend-v2-production.up.railway.app/webhook/nhanh/login"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    padding: '12px',
+                    background: '#10b981',
+                    color: 'white',
+                    borderRadius: 'var(--radius-md)',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    marginBottom: '24px'
+                  }}
+                >
+                  🔗 Đăng nhập & Kết nối Nhanh.vn (Tự động)
+                </a>
+              </div>
+
+              <div style={{ position: 'relative', textAlign: 'center', marginBottom: '24px' }}>
+                <hr style={{ borderTop: '1px solid var(--border)' }} />
+                <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: 'var(--bg-secondary)', padding: '0 10px', fontSize: 12, color: 'var(--text-muted)' }}>
+                  Hoặc nhập thủ công
+                </span>
+              </div>
+
+              <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 500 }}>Business ID (ID doanh nghiệp)</label>
                 <input 
                   type="text" 

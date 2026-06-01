@@ -170,6 +170,63 @@ async def shopee_login():
     
     return RedirectResponse(url=auth_url)
 
+@router.get("/nhanh/login")
+async def nhanh_login():
+    """Tự động sinh link ủy quyền Nhanh.vn"""
+    app_id = settings.NHANH_APP_ID or "77600"
+    callback_url = urllib.parse.quote_plus("https://silence-backend-v2-production.up.railway.app/webhook/nhanh/callback")
+    url = f"https://nhanh.vn/oauth?version=2&appId={app_id}&returnLink={callback_url}"
+    return RedirectResponse(url)
+
+@router.get("/nhanh/callback")
+async def nhanh_callback(accessCode: str, db: Session = Depends(get_db)):
+    """Nhận code từ Nhanh.vn và đổi lấy Access Token"""
+    app_id = settings.NHANH_APP_ID or "77600"
+    secret_key = settings.NHANH_SECRET_KEY
+    
+    if not secret_key:
+        return {"error": "Chưa cài đặt NHANH_SECRET_KEY trên Railway"}
+        
+    url = "https://open.nhanh.vn/api/oauth/access_token"
+    payload = {
+        "version": "2.0",
+        "appId": app_id,
+        "secretKey": secret_key,
+        "accessCode": accessCode
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, data=payload)
+        data = response.json()
+        
+    if data.get("code") != 1:
+        return {"error": "Failed to get access token", "details": data}
+        
+    token_data = data.get("data", {})
+    access_token = token_data.get("accessToken")
+    business_id = token_data.get("businessId")
+    
+    # Save to Database
+    shop_integration = db.query(ShopIntegration).filter(
+        ShopIntegration.platform == PlatformEnum.NHANH_VN
+    ).first()
+    
+    if shop_integration:
+        shop_integration.shop_id = str(business_id)
+        shop_integration.access_token = access_token
+        shop_integration.is_active = True
+    else:
+        shop_integration = ShopIntegration(
+            shop_id=str(business_id),
+            platform=PlatformEnum.NHANH_VN,
+            access_token=access_token,
+            is_active=True
+        )
+        db.add(shop_integration)
+        
+    db.commit()
+    return {"status": "Success! Đã kết nối Nhanh.vn thành công, bạn có thể đóng tab này."}
+
 @router.get("/debug/shopee")
 async def debug_shopee():
     """Debug endpoint - thử cả 2 format key (có và không có prefix shpk) và gọi thẳng Shopee API"""
