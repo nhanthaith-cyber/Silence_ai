@@ -187,7 +187,7 @@ async def nhanh_callback(accessCode: str, db: Session = Depends(get_db)):
     if not secret_key:
         return {"error": "Chưa cài đặt NHANH_SECRET_KEY trên Railway"}
         
-    url = "https://open.nhanh.vn/api/oauth/access_token"
+    url = "https://pos.open.nhanh.vn/api/oauth/access_token"
     payload = {
         "version": "2.0",
         "appId": app_id,
