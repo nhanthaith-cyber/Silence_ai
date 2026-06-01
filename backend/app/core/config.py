@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     FACEBOOK_VERIFY_TOKEN: str = "silence_verify_2024"
     INSTAGRAM_ACCESS_TOKEN: str = ""
     
-    # Shopee (mock trong MVP)
+    # Shopee
     SHOPEE_PARTNER_ID: str = ""
     SHOPEE_PARTNER_KEY: str = ""
+    SHOPEE_API_BASE_URL: str = "https://openplatform.sandbox.test-stable.shopee.sg"  # Sandbox; Production: https://partner.shopeemobile.com
     
     # TikTok (mock trong MVP)
     TIKTOK_APP_KEY: str = ""

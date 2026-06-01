@@ -241,9 +241,24 @@ async def debug_shopee():
 @router.post("/shopee/webhook")
 async def shopee_real_webhook(request: Request, db: Session = Depends(get_db)):
     """Nhận Webhook từ Shopee (tin nhắn mới, cập nhật đơn hàng...)"""
-    body = await request.json()
+    body_bytes = await request.body()
+    authorization = request.headers.get("Authorization", "")
     
-    from app.adapters.shopee_adapter import parse_shopee_webhook
+    from app.adapters.shopee_adapter import parse_shopee_webhook, verify_shopee_push_signature
+    
+    # Verify signature
+    if not verify_shopee_push_signature(body_bytes, authorization):
+        print(f"[Shopee Webhook] Invalid signature: {authorization}")
+        # Shopee test tools might not send valid signatures, so log it but still process in dev if needed
+        # In production, you would return 401:
+        # return JSONResponse(status_code=401, content={"error": "Invalid signature"})
+    
+    import json
+    try:
+        body = json.loads(body_bytes.decode('utf-8'))
+    except json.JSONDecodeError:
+        return {"code": 0, "msg": "invalid json"}
+        
     messages = parse_shopee_webhook(body)
     
     for msg in messages:

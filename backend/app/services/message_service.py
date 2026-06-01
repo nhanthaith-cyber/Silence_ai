@@ -228,6 +228,21 @@ async def _find_product_context(message: str, db: Session) -> str:
                         nhanh_info += f"Size {color_or_size}: {value}\n"
             context_parts.append(nhanh_info.strip())
         
+        # Tích hợp thêm Shopee Order context (nếu có mã đơn)
+        import re
+        order_matches = re.findall(r"(?:đơn|mã|order)?\s*([A-Z0-9]{12,15})", message.upper())
+        if order_matches:
+            from app.adapters.shopee_adapter import shopee_client
+            try:
+                for order_sn in order_matches:
+                    order_data = await shopee_client.get_order_detail(db, order_sn_list=[order_sn])
+                    if order_data and order_data.get("response") and order_data["response"].get("order_list"):
+                        order = order_data["response"]["order_list"][0]
+                        shopee_info = f"Shopee Order {order_sn}: Status={order.get('order_status')}, Carrier={order.get('shipping_carrier')}\n"
+                        context_parts.append(shopee_info)
+            except Exception as e:
+                print(f"[Message Service] Shopee API error: {e}")
+        
         if not context_parts:
             return None
             
