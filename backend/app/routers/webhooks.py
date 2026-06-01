@@ -132,6 +132,35 @@ async def shopee_oauth_callback(code: str, shop_id: str, request: Request, db: S
     
     return {"status": "Success! You can now close this tab."}
 
+from fastapi.responses import RedirectResponse
+
+@router.get("/shopee/login")
+async def shopee_login():
+    """Tự động sinh link ủy quyền và chuyển hướng người dùng sang Shopee"""
+    partner_id = settings.SHOPEE_PARTNER_ID
+    partner_key = settings.SHOPEE_PARTNER_KEY
+    
+    if not partner_id or not partner_key:
+        return {"error": "Chưa cài đặt SHOPEE_PARTNER_ID hoặc SHOPEE_PARTNER_KEY trên Railway"}
+        
+    api_path = "/api/v2/shop/auth_partner"
+    timestamp = int(time.time())
+    
+    base_string = f"{partner_id}{api_path}{timestamp}"
+    sign = hmac.new(
+        partner_key.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    
+    redirect_url = "https://silence-backend-v2-production.up.railway.app/api/auth/shopee/callback"
+    auth_url = (
+        f"https://partner.test-stable.shopeemobile.com{api_path}?"
+        f"partner_id={partner_id}&timestamp={timestamp}&sign={sign}&redirect={redirect_url}"
+    )
+    
+    return RedirectResponse(url=auth_url)
+
 @router.post("/shopee/webhook")
 async def shopee_real_webhook(request: Request, db: Session = Depends(get_db)):
     """Nhận Webhook từ Shopee (tin nhắn mới, cập nhật đơn hàng...)"""
