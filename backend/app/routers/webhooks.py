@@ -135,6 +135,7 @@ async def shopee_oauth_callback(code: str, shop_id: str, request: Request, db: S
     return {"status": "Success! You can now close this tab."}
 
 from fastapi.responses import RedirectResponse
+import urllib.parse
 
 @router.get("/shopee/login")
 async def shopee_login():
@@ -144,11 +145,40 @@ async def shopee_login():
     
     if not partner_id or not partner_key:
         return {"error": "Chưa cài đặt SHOPEE_PARTNER_ID hoặc SHOPEE_PARTNER_KEY trên Railway"}
-        
+    
+    api_path = "/api/v2/shop/auth_partner"
+    timestamp = int(time.time())
+    redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
+    
+    # Shopee docs: base_string = partner_id (int) + api_path + timestamp (int)
+    base_string = f"{int(partner_id)}{api_path}{timestamp}"
+    sign = hmac.new(
+        partner_key.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    
+    # URL ủy quyền Shopee Test environment
+    auth_url = (
+        f"https://partner.test-stable.shopeemobile.com{api_path}"
+        f"?partner_id={int(partner_id)}"
+        f"&timestamp={timestamp}"
+        f"&sign={sign}"
+        f"&redirect={urllib.parse.quote(redirect_url, safe='')}"
+    )
+    
+    return RedirectResponse(url=auth_url)
+
+@router.get("/debug/shopee")
+async def debug_shopee():
+    """Debug endpoint - hiển thị toàn bộ thông tin để đối chiếu"""
+    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
+    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
+    
     api_path = "/api/v2/shop/auth_partner"
     timestamp = int(time.time())
     
-    base_string = f"{partner_id}{api_path}{timestamp}"
+    base_string = f"{int(partner_id)}{api_path}{timestamp}"
     sign = hmac.new(
         partner_key.encode('utf-8'),
         base_string.encode('utf-8'),
@@ -157,42 +187,27 @@ async def shopee_login():
     
     redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
     
-    # URL ủy quyền của Shopee (Test environment)
-    auth_url = f"https://partner.test-stable.shopeemobile.com{api_path}?partner_id={partner_id}&timestamp={timestamp}&sign={sign}&redirect={redirect_url}"
-    
-    return RedirectResponse(url=auth_url)
-
-@router.get("/debug/shopee-key")
-async def debug_shopee_key():
-    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
-    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
+    auth_url_test = (
+        f"https://partner.test-stable.shopeemobile.com{api_path}"
+        f"?partner_id={int(partner_id)}"
+        f"&timestamp={timestamp}"
+        f"&sign={sign}"
+        f"&redirect={urllib.parse.quote(redirect_url, safe='')}"
+    )
     
     return {
-        "partner_id": partner_id,
-        "key_length": len(partner_key),
-        "key_start": partner_key[:10] if partner_key else None,
-        "key_end": partner_key[-5:] if partner_key else None,
+        "partner_id_raw": repr(settings.SHOPEE_PARTNER_ID),
+        "partner_id_used": int(partner_id),
+        "partner_key_length": len(partner_key),
+        "partner_key_first_10": partner_key[:10] if partner_key else None,
+        "partner_key_last_5": partner_key[-5:] if partner_key else None,
+        "api_path": api_path,
+        "timestamp": timestamp,
+        "base_string": base_string,
+        "sign": sign,
+        "redirect_url": redirect_url,
+        "auth_url_test": auth_url_test,
     }
-
-@router.get("/shopee/login/live")
-async def shopee_login_live():
-    """Tự động sinh link ủy quyền cho môi trường LIVE"""
-    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
-    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
-    
-    if not partner_id or not partner_key:
-        return {"error": "Chưa cài đặt SHOPEE_PARTNER_ID hoặc SHOPEE_PARTNER_KEY trên Railway"}
-        
-    from app.adapters.shopee_adapter import generate_shopee_signature
-    api_path = "/api/v2/shop/auth_partner"
-    sign, timestamp = generate_shopee_signature(api_path)
-    
-    redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
-    
-    # URL ủy quyền của Shopee (LIVE environment)
-    auth_url = f"https://partner.shopeemobile.com{api_path}?partner_id={partner_id}&timestamp={timestamp}&sign={sign}&redirect={redirect_url}"
-    
-    return RedirectResponse(url=auth_url)
 
 @router.post("/shopee/webhook")
 async def shopee_real_webhook(request: Request, db: Session = Depends(get_db)):
