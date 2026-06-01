@@ -162,6 +162,18 @@ async def shopee_login():
     
     return RedirectResponse(url=auth_url)
 
+@router.get("/debug/shopee-key")
+async def debug_shopee_key():
+    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
+    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
+    
+    return {
+        "partner_id": partner_id,
+        "key_length": len(partner_key),
+        "key_start": partner_key[:10] if partner_key else None,
+        "key_end": partner_key[-5:] if partner_key else None,
+    }
+
 @router.get("/shopee/login/live")
 async def shopee_login_live():
     """Tự động sinh link ủy quyền cho môi trường LIVE"""
