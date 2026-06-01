@@ -319,22 +319,36 @@ INTENT_KEYWORDS = {
     "return_exchange": ["đổi trả", "hoàn tiền", "refund", "return", "đổi size", "trả hàng"],
     "shipping": ["giao hàng", "ship", "vận chuyển", "delivery", "khi nào nhận", "giao chậm", "chưa nhận"],
     "promotion": ["giảm giá", "khuyến mãi", "voucher", "mã giảm", "sale", "ưu đãi"],
-    "inventory_check": ["còn hàng", "hết hàng", "tồn kho", "còn size", "còn không", "có sẵn"],
+    "inventory_check": ["còn hàng", "hết hàng", "tồn kho", "còn size", "còn không", "có sẵn", "còn màu", "còn stock", "bao nhiêu", "mấy cái"],
     "purchase_hesitation": ["phân vân", "đắn đo", "nên mua", "có nên", "so sánh"],
     "post_purchase": ["đã mua", "đã nhận", "sau mua", "feedback", "đánh giá"],
 }
 
+# Các intent ưu tiên cao hơn khi có cùng điểm
+INTENT_PRIORITY = {
+    "inventory_check": 10,
+    "complaint": 9,
+    "return_exchange": 8,
+    "order_tracking": 7,
+    "size_inquiry": 6,
+    "product_inquiry": 3,
+    "general": 0
+}
+
 def _detect_intent(user_message: str) -> str:
-    """Xác định intent từ từ khóa."""
+    """Xác định intent từ từ khóa, ưu tiên intent quan trọng hơn khi cùng điểm."""
     user_lower = user_message.lower()
     best_intent = "general"
     best_score = 0
+    best_priority = 0
     
     for intent, keywords in INTENT_KEYWORDS.items():
         score = sum(1 for kw in keywords if kw in user_lower)
-        if score > best_score:
+        priority = INTENT_PRIORITY.get(intent, 5)
+        if score > best_score or (score == best_score and score > 0 and priority > best_priority):
             best_score = score
             best_intent = intent
+            best_priority = priority
     
     return best_intent
 
@@ -480,6 +494,17 @@ def _mock_response(user_message: str, db: Session = None, customer_memory: dict 
     
     # Product inquiry
     if intent == "product_inquiry":
+        if product_context:
+            return {
+                "reply": f"Dạ, em có thông tin sản phẩm cho anh/chị đây ạ:\n{product_context}\nAnh/chị cần tư vấn thêm về size hoặc chất liệu không ạ?",
+                "confidence": 0.85,
+                "should_handoff": False,
+                "category": "product",
+                "intent": "product_inquiry",
+                "emotion_level": emotion,
+                "memory_updates": None,
+                "escalation_reason": None
+            }
         return {
             "reply": "Dạ, anh/chị quan tâm đến mẫu nào ạ? Cho em biết tên sản phẩm hoặc mô tả sơ, em sẽ tư vấn chi tiết về chất liệu, form dáng và size phù hợp nhé.",
             "confidence": 0.78,
