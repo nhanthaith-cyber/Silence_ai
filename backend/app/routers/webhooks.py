@@ -158,9 +158,9 @@ async def shopee_login():
         hashlib.sha256
     ).hexdigest()
     
-    # URL ủy quyền Shopee Test environment
+    # URL ủy quyền Shopee Sandbox environment (đúng URL chính thức)
     auth_url = (
-        f"https://partner.test-stable.shopeemobile.com{api_path}"
+        f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}"
         f"?partner_id={int(partner_id)}"
         f"&timestamp={timestamp}"
         f"&sign={sign}"
@@ -208,7 +208,7 @@ async def debug_shopee():
     async with httpx.AsyncClient(follow_redirects=False, timeout=10) as client:
         for label, sign in [("with_shpk_prefix", sign_with_prefix), ("without_shpk_prefix", sign_without_prefix)]:
             url = (
-                f"https://partner.test-stable.shopeemobile.com{api_path}"
+                f"https://openplatform.sandbox.test-stable.shopee.sg{api_path}"
                 f"?partner_id={int(partner_id)}"
                 f"&timestamp={timestamp}"
                 f"&sign={sign}"
