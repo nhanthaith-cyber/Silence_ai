@@ -171,42 +171,70 @@ async def shopee_login():
 
 @router.get("/debug/shopee")
 async def debug_shopee():
-    """Debug endpoint - hiển thị toàn bộ thông tin để đối chiếu"""
+    """Debug endpoint - thử cả 2 format key (có và không có prefix shpk) và gọi thẳng Shopee API"""
     partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
-    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
+    partner_key_full = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
+    
+    # Thử key không có prefix shpk
+    if partner_key_full.startswith("shpk"):
+        partner_key_no_prefix = partner_key_full[4:]  # Bỏ "shpk" ở đầu
+    else:
+        partner_key_no_prefix = partner_key_full
     
     api_path = "/api/v2/shop/auth_partner"
     timestamp = int(time.time())
+    redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
     
     base_string = f"{int(partner_id)}{api_path}{timestamp}"
-    sign = hmac.new(
-        partner_key.encode('utf-8'),
+    
+    # Sign với key ĐẦY ĐỦ (có shpk)
+    sign_with_prefix = hmac.new(
+        partner_key_full.encode('utf-8'),
         base_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
     
-    redirect_url = "https://silence-backend-v2-production.up.railway.app/webhook/api/auth/shopee/callback"
+    # Sign với key KHÔNG có shpk
+    sign_without_prefix = hmac.new(
+        partner_key_no_prefix.encode('utf-8'),
+        base_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
     
-    auth_url_test = (
-        f"https://partner.test-stable.shopeemobile.com{api_path}"
-        f"?partner_id={int(partner_id)}"
-        f"&timestamp={timestamp}"
-        f"&sign={sign}"
-        f"&redirect={urllib.parse.quote(redirect_url, safe='')}"
-    )
+    # Test thử gọi Shopee API với cả 2 key
+    import urllib.parse
+    results = {}
+    
+    async with httpx.AsyncClient(follow_redirects=False, timeout=10) as client:
+        for label, sign in [("with_shpk_prefix", sign_with_prefix), ("without_shpk_prefix", sign_without_prefix)]:
+            url = (
+                f"https://partner.test-stable.shopeemobile.com{api_path}"
+                f"?partner_id={int(partner_id)}"
+                f"&timestamp={timestamp}"
+                f"&sign={sign}"
+                f"&redirect={urllib.parse.quote(redirect_url, safe='')}"
+            )
+            try:
+                resp = await client.get(url)
+                results[label] = {
+                    "status_code": resp.status_code,
+                    "response": resp.text[:500] if resp.text else None,
+                    "redirect_location": str(resp.headers.get("location", "")) if resp.status_code in (301, 302, 307) else None,
+                }
+            except Exception as e:
+                results[label] = {"error": str(e)}
     
     return {
-        "partner_id_raw": repr(settings.SHOPEE_PARTNER_ID),
-        "partner_id_used": int(partner_id),
-        "partner_key_length": len(partner_key),
-        "partner_key_first_10": partner_key[:10] if partner_key else None,
-        "partner_key_last_5": partner_key[-5:] if partner_key else None,
-        "api_path": api_path,
-        "timestamp": timestamp,
+        "partner_id": int(partner_id),
+        "key_full": partner_key_full[:10] + "..." + partner_key_full[-5:],
+        "key_no_prefix": partner_key_no_prefix[:10] + "..." + partner_key_no_prefix[-5:],
+        "key_full_length": len(partner_key_full),
+        "key_no_prefix_length": len(partner_key_no_prefix),
         "base_string": base_string,
-        "sign": sign,
-        "redirect_url": redirect_url,
-        "auth_url_test": auth_url_test,
+        "timestamp": timestamp,
+        "sign_with_prefix": sign_with_prefix,
+        "sign_without_prefix": sign_without_prefix,
+        "shopee_api_results": results,
     }
 
 @router.post("/shopee/webhook")
