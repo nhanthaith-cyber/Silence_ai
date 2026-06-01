@@ -6,6 +6,8 @@ from app.services.message_service import process_incoming_message
 from app.models.models import ShopIntegration, PlatformEnum
 import httpx
 import time
+import hmac
+import hashlib
 from app.adapters.facebook_adapter import parse_facebook_webhook, verify_facebook_signature
 from app.adapters.instagram_adapter import parse_instagram_webhook
 from app.adapters.shopee_adapter import generate_mock_shopee_message
