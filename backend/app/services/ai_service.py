@@ -335,13 +335,14 @@ INTENT_PRIORITY = {
     "general": 0
 }
 
-def _detect_intent(user_message: str) -> str:
-    """Xác định intent từ từ khóa, ưu tiên intent quan trọng hơn khi cùng điểm."""
+def _detect_intent(user_message: str, db: Session = None) -> str:
+    """Xác định intent từ từ khóa cứng + từ khóa học được từ Knowledge Base."""
     user_lower = user_message.lower()
     best_intent = "general"
     best_score = 0
     best_priority = 0
     
+    # 1. Check từ khóa cứng (hardcoded)
     for intent, keywords in INTENT_KEYWORDS.items():
         score = sum(1 for kw in keywords if kw in user_lower)
         priority = INTENT_PRIORITY.get(intent, 5)
@@ -349,6 +350,27 @@ def _detect_intent(user_message: str) -> str:
             best_score = score
             best_intent = intent
             best_priority = priority
+    
+    # 2. Check từ khóa học được từ Knowledge Base (qua "Dạy AI")
+    if db:
+        try:
+            kb_items = db.query(KnowledgeBase).filter(
+                KnowledgeBase.is_active == True,
+                KnowledgeBase.tags != None
+            ).all()
+            for item in kb_items:
+                if not item.tags:
+                    continue
+                tags = [t.strip().lower() for t in item.tags.split(',') if t.strip()]
+                intent_tag = item.category or "general"
+                score = sum(1 for tag in tags if len(tag) >= 2 and tag in user_lower)
+                priority = INTENT_PRIORITY.get(intent_tag, 5)
+                if score > best_score or (score == best_score and score > 0 and priority > best_priority):
+                    best_score = score
+                    best_intent = intent_tag
+                    best_priority = priority
+        except Exception as e:
+            print(f"[AI Service] KB intent check error: {e}")
     
     return best_intent
 
@@ -384,7 +406,7 @@ def _mock_response(user_message: str, db: Session = None, customer_memory: dict 
         }
         
     user_lower = user_message.lower()
-    intent = _detect_intent(user_message)
+    intent = _detect_intent(user_message, db)
     emotion = _detect_emotion(user_message)
     
     # Nếu khách angry → luôn escalate

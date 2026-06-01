@@ -40,7 +40,7 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
   const [selectedQuestion, setSelectedQuestion] = useState<Message | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<Message | null>(null);
   const [showTeachModal, setShowTeachModal] = useState(false);
-  const [teachForm, setTeachForm] = useState({ question: '', answer: '' });
+  const [teachForm, setTeachForm] = useState({ question: '', answer: '', category: 'general', tags: '' });
   const [memory, setMemory] = useState<CustomerMemory | null>(null);
 
   useEffect(() => {
@@ -165,9 +165,24 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
     if (!selectedQuestion || !selectedAnswer) {
       return toast.error('Vui lòng chọn 1 câu hỏi (khách) và 1 câu trả lời (nhân viên/AI)');
     }
+    // Auto-detect intent from question keywords
+    const q = selectedQuestion.content.toLowerCase();
+    let autoCategory = 'general';
+    if (/còn|hết hàng|tồn kho|có sẵn/.test(q)) autoCategory = 'inventory_check';
+    else if (/size|cỡ|form|chiều cao|cân nặng/.test(q)) autoCategory = 'size_inquiry';
+    else if (/đơn hàng|order|mã đơn|tracking/.test(q)) autoCategory = 'order_tracking';
+    else if (/khiếu nại|phàn nàn|tệ|hỏng|lỗi|sai/.test(q)) autoCategory = 'complaint';
+    else if (/đổi trả|hoàn tiền|refund|trả hàng/.test(q)) autoCategory = 'return_exchange';
+    else if (/giao hàng|ship|vận chuyển|chưa nhận/.test(q)) autoCategory = 'shipping';
+    else if (/giảm giá|khuyến mãi|voucher|sale/.test(q)) autoCategory = 'promotion';
+    else if (/sản phẩm|áo|quần|mẫu|chất liệu/.test(q)) autoCategory = 'product_inquiry';
+    else if (/phối đồ|combo|outfit|mặc với/.test(q)) autoCategory = 'styling_advice';
+
     setTeachForm({
       question: selectedQuestion.content,
-      answer: selectedAnswer.content
+      answer: selectedAnswer.content,
+      category: autoCategory,
+      tags: ''
     });
     setShowTeachModal(true);
   }
@@ -177,14 +192,15 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
       return toast.error('Vui lòng điền đủ câu hỏi và trả lời');
     }
     try {
+      const allTags = ['training', teachForm.category, ...teachForm.tags.split(',').map(t => t.trim())].filter(Boolean).join(', ');
       await createKnowledge({
-        category: 'general',
+        category: teachForm.category,
         question: teachForm.question,
         answer: teachForm.answer,
-        tags: 'training, human_handoff',
-        is_active: false // Lưu dưới dạng nháp (cần duyệt)
+        tags: allTags,
+        is_active: true // Áp dụng ngay
       });
-      toast.success('Đã lưu bài học vào Nháp! Hãy chờ Quản lý duyệt.');
+      toast.success('Đã lưu bài học thành công! AI sẽ áp dụng ngay.');
       setShowTeachModal(false);
       setIsSelectMode(false);
     } catch (e) {
@@ -463,10 +479,10 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
       {/* Teach AI Modal */}
       {showTeachModal && (
         <div className="modal-overlay" onClick={() => setShowTeachModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ minWidth: 500 }}>
-            <div className="modal-title">🎓 Tạo bài học mới cho AI</div>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ minWidth: 540 }}>
+            <div className="modal-title">🎓 Dạy AI — Tạo bài học mới</div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
-              Bài học này sẽ được lưu vào mục <strong>Knowledge Base</strong> dưới dạng <strong>Bản Nháp</strong> để quản lý duyệt.
+              AI sẽ học cách nhận diện loại câu hỏi và trả lời phù hợp. <strong>Áp dụng ngay</strong> sau khi lưu.
             </div>
 
             <div className="form-group">
@@ -480,7 +496,7 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ color: '#8b5cf6' }}>Câu trả lời của bạn (Outbound)</label>
+              <label className="form-label" style={{ color: '#8b5cf6' }}>Câu trả lời mẫu (Outbound)</label>
               <textarea
                 className="form-textarea"
                 value={teachForm.answer}
@@ -489,10 +505,46 @@ export default function ChatWindow({ conversation, onUpdate }: Props) {
               />
             </div>
 
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">🏷️ Phân loại Intent</label>
+                <select
+                  className="form-input"
+                  value={teachForm.category}
+                  onChange={e => setTeachForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+                >
+                  <option value="general">💬 Chung</option>
+                  <option value="inventory_check">📦 Kiểm tồn kho</option>
+                  <option value="product_inquiry">🛍️ Hỏi sản phẩm</option>
+                  <option value="size_inquiry">📏 Hỏi size</option>
+                  <option value="order_tracking">📋 Tra đơn hàng</option>
+                  <option value="complaint">😤 Khiếu nại</option>
+                  <option value="return_exchange">🔄 Đổi/Trả hàng</option>
+                  <option value="shipping">🚚 Vận chuyển</option>
+                  <option value="promotion">🎉 Khuyến mãi</option>
+                  <option value="styling_advice">👔 Tư vấn phối đồ</option>
+                  <option value="purchase_hesitation">🤔 Phân vân mua</option>
+                  <option value="post_purchase">✅ Sau mua hàng</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">🔑 Từ khóa nhận diện</label>
+                <input
+                  className="form-input"
+                  placeholder="VD: còn hàng, còn size, hết chưa"
+                  value={teachForm.tags}
+                  onChange={e => setTeachForm(f => ({ ...f, tags: e.target.value }))}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+                />
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Phân cách bằng dấu phẩy. AI sẽ dùng từ khóa này để nhận diện intent.</div>
+              </div>
+            </div>
+
             <div className="modal-actions">
               <button className="btn btn-secondary" onClick={() => setShowTeachModal(false)}>Hủy</button>
               <button className="btn btn-primary" onClick={handleSaveTeach}>
-                <GraduationCap size={14} /> Lưu bản nháp
+                <GraduationCap size={14} /> Lưu & Áp dụng ngay
               </button>
             </div>
           </div>
