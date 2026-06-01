@@ -29,8 +29,8 @@ SHOPEE_CUSTOMER_NAMES = [
 
 def generate_shopee_signature(api_path: str, params: dict = None) -> tuple:
     """Tạo chữ ký HMAC-SHA256 theo chuẩn Shopee Open Platform"""
-    partner_id = settings.SHOPEE_PARTNER_ID
-    partner_key = settings.SHOPEE_PARTNER_KEY
+    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
+    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
     timestamp = int(time.time())
     
     # Base string: partner_id + api_path + timestamp + access_token(if any) + shop_id(if any)

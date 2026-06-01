@@ -139,8 +139,8 @@ from fastapi.responses import RedirectResponse
 @router.get("/shopee/login")
 async def shopee_login():
     """Tự động sinh link ủy quyền và chuyển hướng người dùng sang Shopee"""
-    partner_id = settings.SHOPEE_PARTNER_ID
-    partner_key = settings.SHOPEE_PARTNER_KEY
+    partner_id = str(settings.SHOPEE_PARTNER_ID).strip() if settings.SHOPEE_PARTNER_ID else ""
+    partner_key = str(settings.SHOPEE_PARTNER_KEY).strip() if settings.SHOPEE_PARTNER_KEY else ""
     
     if not partner_id or not partner_key:
         return {"error": "Chưa cài đặt SHOPEE_PARTNER_ID hoặc SHOPEE_PARTNER_KEY trên Railway"}
