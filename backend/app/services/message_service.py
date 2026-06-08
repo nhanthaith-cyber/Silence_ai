@@ -99,7 +99,57 @@ async def process_incoming_message(
     if conversation.status in [ConversationStatus.OPEN, ConversationStatus.AI_HANDLING]:
         await emit_ai_typing(conversation.id, True)
         
-        # ─── Load customer memory ──────────────────────────────
+        # ─── CHECK ORDER FLOW ─────────────────────────────────
+        try:
+            order_reply = await _handle_order_flow(conversation, message_content, db)
+            if order_reply:
+                await emit_ai_typing(conversation.id, False)
+                
+                # Lưu AI response cho order flow
+                ai_msg = Message(
+                    id=gen_uuid(),
+                    conversation_id=conversation.id,
+                    direction=MessageDirection.OUTBOUND,
+                    sender_name="AI Assistant",
+                    content=order_reply,
+                    is_ai_generated=True,
+                    ai_confidence=0.95
+                )
+                db.add(ai_msg)
+                conversation.status = ConversationStatus.AI_HANDLING
+                conversation.ai_confidence = 0.95
+                db.commit()
+                db.refresh(ai_msg)
+                
+                ai_msg_data = {
+                    "id": ai_msg.id,
+                    "conversation_id": conversation.id,
+                    "direction": "outbound",
+                    "content": order_reply,
+                    "sender_name": "AI Assistant",
+                    "is_ai_generated": True,
+                    "ai_confidence": 0.95,
+                    "created_at": ai_msg.created_at.isoformat() if ai_msg.created_at else datetime.utcnow().isoformat()
+                }
+                await emit_new_message(conversation.id, ai_msg_data)
+                
+                # Gửi reply về platform
+                try:
+                    await _send_reply_to_platform(
+                        platform=platform,
+                        conversation=conversation,
+                        reply_text=order_reply,
+                        db=db
+                    )
+                except Exception as e:
+                    print(f"[Message Service] Platform send error: {e}")
+                
+                return {"success": True, "conversation_id": conversation.id}
+        except Exception as e:
+            print(f"[Message Service] Order flow error: {e}")
+        
+        # ─── NORMAL AI FLOW ───────────────────────────────────
+        # Load customer memory
         customer_memory = None
         try:
             from app.services.memory_service import get_customer_memory
@@ -334,3 +384,169 @@ def _create_ticket(
         )
         db.add(ticket)
         db.commit()
+
+
+async def _handle_order_flow(conversation, message: str, db) -> str | None:
+    """
+    Xử lý order flow trong chat.
+    Returns: reply string nếu đang trong order flow, None nếu không.
+    """
+    from app.services.order_state import (
+        is_in_order_flow, get_order_state, start_order_flow,
+        update_order_state, cancel_order_flow, complete_order_flow,
+        get_missing_fields, format_order_summary, get_prompt_for_missing,
+        parse_order_intent, parse_customer_info, parse_confirmation,
+        ORDER_STATES
+    )
+    
+    conv_id = conversation.id
+    
+    # ─── Nếu đang trong order flow ──────────────────────────
+    if is_in_order_flow(conv_id):
+        state = get_order_state(conv_id)
+        current = state["state"]
+        
+        # Check hủy đơn
+        cancel_words = ["hủy", "thôi", "bỏ", "cancel", "dừng", "không mua"]
+        if any(w in message.lower() for w in cancel_words) and current != ORDER_STATES["CONFIRMING"]:
+            cancel_order_flow(conv_id)
+            return "Dạ, em đã hủy đơn hàng. Anh/chị cần hỗ trợ gì thêm không ạ? 😊"
+        
+        # ─── CONFIRMING state ──────────────────────────────
+        if current == ORDER_STATES["CONFIRMING"]:
+            confirmed = parse_confirmation(message)
+            if confirmed is True:
+                # Tạo đơn trên Nhanh.vn
+                update_order_state(conv_id, {"state": ORDER_STATES["CREATING"]})
+                
+                result = await _create_nhanh_order(state, db)
+                
+                if result["status"] == "success":
+                    complete_order_flow(conv_id)
+                    order_id = result.get("order_id", "N/A")
+                    return f"✅ Đã tạo đơn hàng thành công!\n\n📦 Mã đơn: {order_id}\n🛍️ Sản phẩm: {state['product_name']} - Size {state['size']}\n💰 Tổng: {(state.get('product_price', 0) or 0) * state.get('quantity', 1):,}₫\n\nĐơn hàng đã được ghi nhận trên hệ thống. Em sẽ xử lý và giao hàng sớm nhất cho anh/chị nhé! 🚚"
+                else:
+                    complete_order_flow(conv_id)
+                    return f"⚠️ Đã ghi nhận đơn hàng nhưng chưa đồng bộ được lên hệ thống: {result.get('message', '')}.\n\nEm sẽ xử lý thủ công cho anh/chị nhé. Thông tin:\n- SP: {state['product_name']} Size {state['size']} x{state['quantity']}\n- Người nhận: {state['customer_name']} - {state['customer_phone']}\n- Địa chỉ: {state['address']}"
+            
+            elif confirmed is False:
+                cancel_order_flow(conv_id)
+                return "Dạ, em đã hủy đơn hàng. Anh/chị muốn thay đổi thông tin gì không ạ?"
+            else:
+                return "Anh/chị xác nhận đặt đơn hàng trên không ạ? (Trả lời 'Đồng ý' hoặc 'Hủy')"
+        
+        # ─── COLLECTING states ─────────────────────────────
+        # Parse thông tin từ tin nhắn
+        info = parse_customer_info(message)
+        
+        # Cũng check nếu khách bổ sung product/size
+        order_info = parse_order_intent(message)
+        if order_info.get("size") and not state.get("size"):
+            info["size"] = order_info["size"]
+        if order_info.get("product_name") and not state.get("product_name"):
+            info["product_name"] = order_info["product_name"]
+        
+        # Update state
+        if info:
+            update_order_state(conv_id, info)
+        
+        # Check missing fields
+        missing = get_missing_fields(conv_id)
+        
+        if not missing:
+            # Đã đủ thông tin → tìm sản phẩm trên Nhanh.vn và chuyển sang confirm
+            state = get_order_state(conv_id)
+            
+            # Tìm sản phẩm trên Nhanh.vn để lấy ID và giá
+            if not state.get("product_id"):
+                try:
+                    from app.integrations.nhanh import NhanhVNAdapter
+                    nhanh = NhanhVNAdapter(db=db)
+                    product = await nhanh.search_product_for_order(state["product_name"])
+                    if product:
+                        update_order_state(conv_id, {
+                            "product_id": product["id"],
+                            "product_price": product.get("price", 0),
+                            "product_sku": product.get("sku", "")
+                        })
+                except Exception as e:
+                    print(f"[Order] Product search error: {e}")
+            
+            update_order_state(conv_id, {"state": ORDER_STATES["CONFIRMING"]})
+            return format_order_summary(conv_id)
+        else:
+            return get_prompt_for_missing(missing)
+    
+    # ─── Chưa trong order flow → kiểm tra intent ────────────
+    order_info = parse_order_intent(message)
+    if order_info.get("wants_order"):
+        # Bắt đầu order flow
+        start_order_flow(
+            conv_id,
+            product_name=order_info.get("product_name"),
+            size=order_info.get("size"),
+            quantity=order_info.get("quantity", 1)
+        )
+        
+        # Tìm sản phẩm trên Nhanh.vn nếu có tên
+        if order_info.get("product_name"):
+            try:
+                from app.integrations.nhanh import NhanhVNAdapter
+                nhanh = NhanhVNAdapter(db=db)
+                product = await nhanh.search_product_for_order(order_info["product_name"])
+                if product:
+                    update_order_state(conv_id, {
+                        "product_id": product["id"],
+                        "product_price": product.get("price", 0),
+                        "product_sku": product.get("sku", ""),
+                        "product_name": product.get("name", order_info["product_name"])
+                    })
+                    
+                    reply = f"Dạ, em tìm thấy sản phẩm: **{product['name']}** - Giá: {product.get('price', 0):,}₫\n\n"
+                else:
+                    reply = f"Dạ, em ghi nhận sản phẩm: **{order_info['product_name']}**\n\n"
+            except Exception as e:
+                print(f"[Order] Product search error: {e}")
+                reply = f"Dạ, em ghi nhận sản phẩm: **{order_info['product_name']}**\n\n"
+        else:
+            reply = "Dạ, anh/chị muốn đặt hàng! "
+        
+        missing = get_missing_fields(conv_id)
+        if missing:
+            reply += get_prompt_for_missing(missing)
+        else:
+            update_order_state(conv_id, {"state": ORDER_STATES["CONFIRMING"]})
+            reply = format_order_summary(conv_id)
+        
+        return reply
+    
+    return None  # Không phải order flow
+
+
+async def _create_nhanh_order(state: dict, db) -> dict:
+    """Tạo đơn hàng trên Nhanh.vn từ order state."""
+    try:
+        from app.integrations.nhanh import NhanhVNAdapter
+        nhanh = NhanhVNAdapter(db=db)
+        
+        products = []
+        if state.get("product_id"):
+            products.append({
+                "id": state["product_id"],
+                "quantity": state.get("quantity", 1),
+                "price": state.get("product_price", 0)
+            })
+        
+        order_data = {
+            "customer_name": state.get("customer_name", ""),
+            "customer_phone": state.get("customer_phone", ""),
+            "address": state.get("address", ""),
+            "products": products,
+            "note": state.get("note", f"Đơn từ AI Chat - {state.get('product_name', '')} Size {state.get('size', '')} x{state.get('quantity', 1)}")
+        }
+        
+        result = await nhanh.create_order(order_data)
+        return result
+    except Exception as e:
+        print(f"[Order] Create order error: {e}")
+        return {"status": "error", "message": str(e)}

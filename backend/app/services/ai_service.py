@@ -130,7 +130,7 @@ RESPOND_FUNCTION = {
                         "product_inquiry", "size_inquiry", "order_tracking",
                         "complaint", "return_exchange", "promotion",
                         "styling_advice", "purchase_hesitation",
-                        "post_purchase", "inventory_check", "general"
+                        "post_purchase", "inventory_check", "order_create", "general"
                     ],
                     "description": "Intent chính của khách hàng"
                 },
@@ -311,6 +311,7 @@ async def get_ai_response(
 # ─── Intent Detection cho mock ─────────────────────────────────────────
 
 INTENT_KEYWORDS = {
+    "order_create": ["mua", "đặt hàng", "đặt đơn", "đặt mua", "chốt đơn", "chốt", "mua ngay", "lấy luôn", "mua luôn", "đặt luôn", "cho mình", "cho em", "gửi cho", "mình lấy", "em lấy"],
     "size_inquiry": ["size", "cỡ", "bảng size", "mặc vừa", "form", "chiều cao", "cân nặng", "số đo", "mặc size", "lên size", "xuống size"],
     "product_inquiry": ["sản phẩm", "mẫu", "áo", "quần", "jacket", "chất liệu", "vải", "cotton", "denim", "linen", "màu"],
     "styling_advice": ["phối đồ", "mặc với gì", "combo", "mix", "outfit", "phối", "mặc kèm"],
@@ -326,6 +327,7 @@ INTENT_KEYWORDS = {
 
 # Các intent ưu tiên cao hơn khi có cùng điểm
 INTENT_PRIORITY = {
+    "order_create": 11,
     "inventory_check": 10,
     "complaint": 9,
     "return_exchange": 8,
