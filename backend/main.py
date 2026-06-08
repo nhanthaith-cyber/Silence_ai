@@ -81,14 +81,14 @@ async def startup_event():
     """Khởi động Shopee Chat polling khi server start"""
     from app.services.shopee_polling import start_shopee_polling
     asyncio.create_task(start_shopee_polling())
-    print("[App] 🚀 Shopee Chat Polling started")
+    print("[App] Shopee Chat Polling started")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Dừng polling khi server shutdown"""
     from app.services.shopee_polling import stop_shopee_polling
     await stop_shopee_polling()
-    print("[App] ⏹️ Shopee Chat Polling stopped")
+    print("[App] Shopee Chat Polling stopped")
 
 if __name__ == "__main__":
     uvicorn.run("main:socket_app", host="0.0.0.0", port=8000, reload=True)

@@ -21,7 +21,7 @@ async def start_shopee_polling():
     """Khởi động vòng lặp polling Shopee Chat"""
     global _polling_active
     _polling_active = True
-    print("[Shopee Polling] 🚀 Starting Shopee Chat polling (every 30s)...")
+    print("[Shopee Polling] >> Starting Shopee Chat polling (every 30s)...")
     
     # Đợi 10 giây cho server khởi động xong
     await asyncio.sleep(10)
@@ -30,7 +30,7 @@ async def start_shopee_polling():
         try:
             await _poll_shopee_messages()
         except Exception as e:
-            print(f"[Shopee Polling] ❌ Error: {e}")
+            print(f"[Shopee Polling] ERROR: {e}")
         
         await asyncio.sleep(POLL_INTERVAL)
 
@@ -39,7 +39,7 @@ async def stop_shopee_polling():
     """Dừng polling"""
     global _polling_active
     _polling_active = False
-    print("[Shopee Polling] ⏹️ Stopped")
+    print("[Shopee Polling] Stopped")
 
 
 async def _poll_shopee_messages():
@@ -117,7 +117,7 @@ async def _poll_shopee_messages():
                     # Lấy tên khách (nếu có)
                     buyer_name = msg.get("from_user_name", f"Shopee_{sender_id[-4:]}")
                     
-                    print(f"[Shopee Polling] 📩 New message from {buyer_name}: {content[:50]}...")
+                    print(f"[Shopee Polling] New message from {buyer_name}: {content[:50]}...")
                     
                     await process_incoming_message(
                         platform="shopee",
@@ -140,9 +140,9 @@ async def _poll_shopee_messages():
                 _processed_message_ids.pop()
         
         if new_count > 0:
-            print(f"[Shopee Polling] ✅ Processed {new_count} new messages")
+            print(f"[Shopee Polling] OK Processed {new_count} new messages")
             
     except Exception as e:
-        print(f"[Shopee Polling] ❌ Poll error: {e}")
+        print(f"[Shopee Polling] ERROR Poll error: {e}")
     finally:
         db.close()
