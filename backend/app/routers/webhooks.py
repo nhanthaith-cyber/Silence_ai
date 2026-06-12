@@ -448,3 +448,35 @@ async def simulate_all_platforms(db: Session = Depends(get_db)):
         )
         results.append(result)
     return {"status": "ok", "simulated": len(results)}
+
+# ─── Zalo OA Webhook ─────────────────────────────────────────────────────────
+
+@router.get("/zalo")
+async def zalo_verify(request: Request):
+    """Xác minh Zalo webhook"""
+    return {"status": "ok"} # Zalo verification usually doesn't require complex challenge like FB, just 200 OK or specific event verification
+
+@router.post("/zalo")
+async def zalo_webhook(request: Request, db: Session = Depends(get_db)):
+    """Nhận tin nhắn từ Zalo OA"""
+    body = await request.json()
+    
+    # Xác minh chữ ký nếu cần thiết (dựa vào header X-Zevent-Signature)
+    # app_id = body.get("app_id")
+    # mac = request.headers.get("X-ZEVENT-SIGNATURE")
+    
+    from app.adapters.zalo_adapter import parse_zalo_webhook
+    messages = parse_zalo_webhook(body)
+    
+    for msg in messages:
+        await process_incoming_message(
+            platform=msg["platform"],
+            platform_conversation_id=msg["platform_conversation_id"],
+            customer_id=msg["customer_id"],
+            customer_name=msg["customer_name"],
+            message_content=msg["content"],
+            db=db
+        )
+    
+    return {"error": 0, "msg": "ok"}
+

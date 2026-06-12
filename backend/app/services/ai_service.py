@@ -263,6 +263,20 @@ async def get_ai_response(
         
         system_prompt = agent_config.system_prompt if agent_config else DEFAULT_SYSTEM_PROMPT
         
+        # Inject Platform Strict Rules
+        platform = getattr(conversation, "platform", "unknown")
+        platform_rules = f"""
+QUY TẮC ĐẶC BIỆT THEO NỀN TẢNG (PLATFORM STRICT RULES):
+- Hiện tại bạn đang chat trên nền tảng: {platform}
+- NẾU nền tảng là 'shopee' hoặc 'tiktok':
+  + TUYỆT ĐỐI KHÔNG xin số điện thoại, địa chỉ của khách.
+  + TUYỆT ĐỐI KHÔNG nhắc đến các từ khóa: "Zalo", "Facebook", "Instagram", "hotline", "chuyển khoản", "ngoài sàn".
+  + KHI KHÁCH KHIẾU NẠI / LỖI / ĐỔI TRẢ: Hướng dẫn khách hàng kiểm tra "Tấm thẻ bảo hành" có trong đơn hàng để được bộ phận CSKH hỗ trợ đổi trả/bù hàng nhanh nhất.
+- NẾU nền tảng là 'facebook', 'instagram', hoặc 'zalo':
+  + Bạn ĐƯỢC PHÉP xin số điện thoại, địa chỉ, họ tên để tạo đơn hàng trực tiếp hoặc xử lý khiếu nại.
+  + Không bị hạn chế nhắc đến các nền tảng khác.
+"""
+        
         # Inject customer memory
         memory_context = ""
         if customer_memory:
@@ -285,7 +299,7 @@ async def get_ai_response(
             role = "user" if msg.direction == "inbound" else "assistant"
             messages_history.append({"role": role, "content": msg.content})
             
-        full_system_prompt = system_prompt + memory_context + product_section + kb_context + doc_context
+        full_system_prompt = system_prompt + "\n" + platform_rules + memory_context + product_section + kb_context + doc_context
         if not settings.MULTI_AGENT_ENABLED:
             return await _run_single_agent(
                 openai_client,

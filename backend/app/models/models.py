@@ -15,6 +15,7 @@ class PlatformEnum(str, enum.Enum):
     INSTAGRAM = "instagram"
     SHOPEE = "shopee"
     TIKTOK = "tiktok"
+    ZALO = "zalo"
     NHANH_VN = "nhanh_vn"
 
 

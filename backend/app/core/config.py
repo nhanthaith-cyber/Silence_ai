@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     FACEBOOK_VERIFY_TOKEN: str = "silence_verify_2024"
     INSTAGRAM_ACCESS_TOKEN: str = ""
     
+    # Zalo
+    ZALO_APP_ID: str = ""
+    ZALO_APP_SECRET: str = ""
+    ZALO_ACCESS_TOKEN: str = ""
+    
     # Shopee
     SHOPEE_PARTNER_ID: str = ""
     SHOPEE_PARTNER_KEY: str = ""
