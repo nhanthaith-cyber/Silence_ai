@@ -65,9 +65,22 @@ app.include_router(orders_router.router)
 # Wrap with Socket.IO
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
-@app.get("/")
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"message": "AI Customer Operations Agent — Thời Trang TMĐT", "version": "2.0.0", "status": "running"}
+    return """
+    <html>
+        <head>
+            <meta name="zalo-platform-site-verification" content="Q-sY2Opc0mvQpzC9WFf34LRVqHwwgGH9CZ8s" />
+            <title>Silence AI Backend</title>
+        </head>
+        <body>
+            <h1>AI Customer Operations Agent — Thời Trang TMĐT</h1>
+            <p>Version: 2.0.0 | Status: running</p>
+        </body>
+    </html>
+    """
 
 @app.get("/health")
 async def health():
