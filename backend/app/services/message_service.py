@@ -279,9 +279,24 @@ async def _send_reply_to_platform(platform: str, conversation, reply_text: str, 
         except Exception as e:
             print(f"[Instagram] Send error: {e}")
     
+    elif platform == "zalo":
+        try:
+            from app.adapters.zalo_adapter import send_zalo_message
+            # Zalo uses customer_id like "zalo_12345", so we need to extract the actual ID
+            # In parse_zalo_webhook, we set customer_id = f"zalo_{sender}"
+            zalo_user_id = str(conversation.customer_id).replace("zalo_", "")
+            
+            # Send message via Zalo API
+            success = await send_zalo_message(zalo_user_id, reply_text)
+            if success:
+                print(f"[Zalo] ✅ Sent AI reply to {zalo_user_id}")
+            else:
+                print(f"[Zalo] ❌ Failed to send reply to {zalo_user_id}")
+        except Exception as e:
+            print(f"[Zalo] Send error: {e}")
+            
     else:
         print(f"[{platform}] Platform send not implemented yet")
-
 
 async def _find_product_context(message: str, db: Session) -> str:
     """Tìm sản phẩm liên quan dựa trên nội dung tin nhắn, kèm theo dữ liệu tồn kho thực tế từ Nhanh.vn."""
